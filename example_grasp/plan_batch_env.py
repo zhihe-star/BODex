@@ -10,7 +10,7 @@ import numpy as np
 import argparse
 
 # CuRobo
-from curobo.geom.sdf.world import WorldConfig
+import curobo.geom.sdf.world
 from curobo.wrap.reacher.grasp_solver import GraspSolver, GraspSolverConfig
 from curobo.util.world_cfg_generator import get_world_config_dataloader
 from curobo.util.logger import setup_logger, log_warn
@@ -212,7 +212,7 @@ if __name__ == "__main__":
             world_info_dict["world_model"] = grasp_solver.world_coll_checker.world_model
         else:
             world_info_dict["world_model"] = world_model = [
-                WorldConfig.from_dict(world_cfg) for world_cfg in world_info_dict["world_cfg"]
+                curobo.geom.sdf.world.WorldConfig.from_dict(world_cfg) for world_cfg in world_info_dict["world_cfg"]
             ]
             grasp_solver.update_world(
                 world_model,

@@ -17,7 +17,7 @@ extension_mod = Extension(
         'coal', 'boost_filesystem', 'qhull_r', 'octomap', 'octomath', 'assimp', 'stdc++', 'gcc_s', 'pthread', 'm', 'rt', 'c'
     ],
     include_dirs=[include_dir, eigen_include_dir, pybind11.get_include()],
-    extra_compile_args=["-fopenmp", "-std=c++11"],  # OpenMP and C++11 support
+    extra_compile_args=["-fopenmp", "-std=c++17"],  # OpenMP and C++11 support
     extra_link_args=[f"-L{lib_dir}", "-lcoal", "-fopenmp"],
     language="c++"
 )

@@ -263,6 +263,7 @@ class ArmBase(RolloutBase, ArmBaseConfig):
         self.n_dofs = self.dynamics_model.n_dofs
         self.traj_dt = self.dynamics_model.traj_dt
         
+        
         if self.cost_cfg.grasp_cfg is not None:
             contact_meshes, self.cost_cfg.grasp_cfg.contact_mesh_idx = self.dynamics_model.robot_model.get_contact_link_meshes()
             self.convergence_cfg.grasp_cfg.contact_mesh_idx = self.cost_cfg.grasp_cfg.contact_mesh_idx

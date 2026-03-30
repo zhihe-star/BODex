@@ -1,0 +1,76 @@
+world:
+  type: scene_cfg
+  template_path: object/DGN_2k/scene_cfg/**/floating/*.npy
+  start: 0
+  end: 100
+
+robot_file: "hand_f.yml"
+# 纯手版本先和 robot_file 保持一致；之后如果你接机械臂，再换成 with_arm 配置。
+robot_file_with_arm: null
+base_cfg_file: "base_grasp.yml"
+particle_file: "particle_grasp_debug.yml"
+gradient_file: "gradient_grasp_fc.yml"
+
+exp_name: 'debug_hand_f'
+seed_num: 20
+
+seeder_cfg:
+  obj_sample:
+    num: 128
+    inflate: 0.1
+    convex_hull: True
+    collision_free: True
+  ik_init_q:
+  load_path:
+  # 当前 hand_f.yml 没有启用 hand pose transfer 文件，所以这里先跳过。
+  skip_transfer: True
+  t:
+  r:
+  # 顺序严格对齐 hand_f.yml 里的 cspace.joint_names：
+  # [rh_FFJ3, rh_FFJ2, rh_FFJ1,
+  #  rh_MFJ3, rh_MFJ2, rh_MFJ1,
+  #  rh_RFJ3, rh_RFJ2, rh_RFJ1,
+  #  rh_LFJ3, rh_LFJ2, rh_LFJ1,
+  #  rh_THJ4, rh_THJ3, rh_THJ2, rh_THJ1]
+  q: [0.0, 0.20, 0.0,
+      0.0, 0.20, 0.0,
+      0.0, 0.20, 0.0,
+      0.0, 0.20, 0.0,
+      0.0, 0.60, 0.0, -0.10]
+  jitter_angle: [[-180, -15, -15], [180, 15, 15]]
+  jitter_dist: [[0.0, -0.03, -0.03], [0.03, 0.03, 0.03]]
+
+grasp_contact_strategy:
+  # 由 spheres/hand_f.yml 对齐而来：
+  # ff/mf/rf/lf 的 distal 各有 3 个球 -> 取 /2
+  # thumb distal 有 2 个球 -> 取 /1
+  contact_points_name: ['rh_ffdistal/2', 'rh_mfdistal/2', 'rh_rfdistal/2', 'rh_lfdistal/2', 'rh_thdistal/1']
+  opt_progress: [0.0, 0.6, 0.8]
+  distance: [0.01, 0.01, 0.0]
+  contact_query_mode: [-1, 0, 0]
+  save_qpos: [False, True]
+  max_ge_stage: 0
+
+grasp_cfg:
+  task_dict:
+    f: [0, 0, 1]
+    p: [0, 0, 0]
+    t: [0, 0, 0]
+    gamma: 180
+  ge_param:
+    type: 'qp'
+    miu_coef: [0.1, 0]
+    solver_type: 'batch_reluqp'
+    k_lower: 0.2
+    pressure_constraints:
+      [[[0, 1, 2, 3, 4], 1.0],
+       [[0, 1, 2], 0.4],
+       [[4], 0.5]]
+    enable_density: False
+    solve_interval: 5
+
+mogen_init: [0.0, 0.20, 0.0,
+             0.0, 0.20, 0.0,
+             0.0, 0.20, 0.0,
+             0.0, 0.20, 0.0,
+             0.0, 0.60, 0.0, -0.10]
