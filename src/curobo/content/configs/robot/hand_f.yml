@@ -28,6 +28,10 @@ robot_cfg:
 
     
     tendon_joints: []
+      # - ['rh_FFJ2', 'rh_FFJ1']
+      # - ['rh_MFJ2', 'rh_MFJ1']
+      # - ['rh_RFJ2', 'rh_RFJ1']
+      # - ['rh_LFJ2', 'rh_LFJ1']
 
     collision_link_names:
       - "rh_palm"
@@ -48,7 +52,7 @@ robot_cfg:
       - "rh_thmiddle"
       - "rh_thdistal"
 
-    collision_spheres: "spheres/hand_f.yml"
+    collision_spheres: "spheres/hand_f_debug.yml"
     collision_sphere_buffer: 0.00
     extra_collision_spheres: {}
 
@@ -72,6 +76,7 @@ robot_cfg:
       rh_thdistal: []
 
     self_collision_buffer:
+      
       rh_palm: 0.0
       rh_ffproximal: 0.0
       rh_ffmiddle: 0.0
@@ -129,8 +134,8 @@ robot_cfg:
         - 'rh_THJ2'
         - 'rh_THJ1'
 
-      retract_config: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      null_space_weight: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      retract_config: [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0] # List[float]
+      null_space_weight: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       cspace_distance_weight: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
       max_jerk: 500.0
       max_acceleration: 15.0

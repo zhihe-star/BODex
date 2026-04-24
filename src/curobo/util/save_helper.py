@@ -122,7 +122,7 @@ class SaveHelper:
         save_path = os.path.join(self.save_folder, file_prefix + self.task_name + ".npy")
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         np.save(save_path, save_dict)
-        log_warn(f"Save results to {save_path}")
+        #log_warn(f"Save results to {save_path}")
         return save_path
 
     def _save_usd(self, save_dict, file_prefix: str):
@@ -144,5 +144,5 @@ class SaveHelper:
             set_camera=self.set_camera,
         )
 
-        log_warn(f"save visualization to {save_path}")
+        #log_warn(f"save visualization to {save_path}")
         return save_path

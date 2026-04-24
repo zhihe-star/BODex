@@ -1,0 +1,112 @@
+collision_spheres:
+
+  rh_palm:
+    - center: [0.0197, -0.0109, 0.0197]
+      radius: 0.01
+    - center: [-0.0042, -0.0102, 0.0215]
+      radius: 0.018
+    - center: [-0.0272, -0.0101, 0.0163]
+      radius: 0.01
+
+   
+
+  rh_ffproximal:
+    - center: [0.0, 0.0, 0.005]
+      radius: 0.0085
+    - center: [-0.0199, 0.0, 0.005]
+      radius: 0.0080
+    - center: [-0.0396, 0.0, 0.005]
+      radius: 0.0075
+
+  rh_ffmiddle:
+    - center: [-0.014233,0, 0.005]
+      radius: 0.0080
+  rh_ffdistal:
+    - center: [0.0, 0.0, -0.005]
+      radius: 0.0075
+    - center: [-0.014432, 0.0, -0.005]
+      radius: 0.0070
+    - center: [-0.0255, 0.0, -0.005]
+      radius: 0.0065
+
+  rh_mfproximal:
+    - center: [0.0, 0.0, 0.005]
+      radius: 0.0085
+    - center: [-0.0199, 0.0, 0.005]
+      radius: 0.0080
+    - center: [-0.0396, 0.0, 0.005]
+      radius: 0.0075
+  rh_mfmiddle:
+    - center: [-0.014233,0, 0.005]
+      radius: 0.0080
+  rh_mfdistal:
+    - center: [0.0, 0.0, -0.005]
+      radius: 0.0075
+    - center: [-0.014432, 0.0, -0.005]
+      radius: 0.0070
+    - center: [-0.0255, 0.0, -0.005]
+      radius: 0.0065
+
+  rh_rfproximal:
+    - center: [0.0, 0.0, 0.005]
+      radius: 0.0085
+    - center: [-0.0199, 0.0, 0.005]
+      radius: 0.0080
+    - center: [-0.0396, 0.0, 0.005]
+      radius: 0.0075
+  rh_rfmiddle:
+    - center: [-0.014233,0, 0.005]
+      radius: 0.0080
+  rh_rfdistal:
+    - center: [0.0, 0.0, -0.005]
+      radius: 0.0075
+    - center: [-0.014432, 0.0, -0.005]
+      radius: 0.0070
+    - center: [-0.0255, 0.0, -0.005]
+      radius: 0.0065
+
+  rh_lfproximal:
+    - center: [0.0, 0.0, 0.005]
+      radius: 0.0085
+    - center: [-0.0199, 0.0, 0.005]
+      radius: 0.0080
+    - center: [-0.0396, 0.0, 0.005]
+      radius: 0.0075
+  rh_lfmiddle:
+    - center: [-0.014233,0, 0.005]
+      radius: 0.0080
+  rh_lfdistal:
+    - center: [0.0, 0.0, -0.005]
+      radius: 0.0075
+    - center: [-0.014432, 0.0, -0.005]
+      radius: 0.0070
+    - center: [-0.0255, 0.0, -0.005]
+      radius: 0.0065
+
+  rh_thbase:
+  - center: [-0.0035, 0.0198, -0.0010]
+    radius: 0.0090
+  - center: [-0.0155, 0.0198, -0.0010]
+    radius: 0.0083
+
+  rh_thproximal:
+    - center: [-0.0085, 0.0025, 0.0052]
+      radius: 0.0085
+    - center: [-0.0220, 0.0035, 0.0052]
+      radius: 0.0080
+    - center: [-0.0350, 0.0045, 0.0052]
+      radius: 0.0075
+
+  rh_thmiddle:
+    - center: [-0.0090, 0.0035, 0.0053]
+      radius: 0.0075
+    - center: [-0.0205, 0.0045, 0.0053]
+      radius: 0.0075
+
+  rh_thdistal:
+    - center: [-0.0040, 0.0030, -0.0053]
+      radius: 0.0070
+    - center: [-0.0158, 0.0045, -0.0053]
+      radius: 0.0065
+    - center: [-0.0268, 0.0060, -0.0053]
+      radius: 0.0060

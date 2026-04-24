@@ -19,6 +19,7 @@ collision_spheres:
       "radius": 0.0125
     - "center": [0.001, 0.0, 0.029]
       "radius": 0.02
+      
   rh_ffproximal:
     - "center": [0.0, 0.0, 0.0]
       "radius": 0.01
@@ -38,6 +39,7 @@ collision_spheres:
       "radius": 0.008
     - "center": [0.0, 0.001, 0.022]
       "radius": 0.0075
+
   rh_mfproximal:
     - "center": [0.0, 0.0, 0.0]
       "radius": 0.01

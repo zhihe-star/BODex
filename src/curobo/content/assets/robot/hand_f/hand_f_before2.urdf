@@ -22,7 +22,7 @@
       </geometry>
     </collision>
   </link>
-  <link name="rh_lfproximal">
+  <link name="rh_ffproximal">
     <inertial>
       <origin xyz="-0.0195256107357361 -4.14618336538886E-09 0.00555427641438734" rpy="0 0 0" />
       <mass value="0.00677364247310552" />
@@ -44,14 +44,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_LFJ3" type="revolute">
+  <joint name="rh_FFJ3" type="revolute">
     <origin xyz="-0.049344 -0.0099 0.056068" rpy="0 1.1345 0" />
     <parent link="rh_palm" />
-    <child link="rh_lfproximal" />
+    <child link="rh_ffproximal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.261799387799" effort="100" velocity="100" />
   </joint>
-  <link name="rh_lfmiddle">
+  <link name="rh_ffmiddle">
     <inertial>
       <origin xyz="-0.0160035085162165 -9.52427303902575E-07 0.00600478978269169" rpy="0 0 0" />
       <mass value="0.00324240874433465" />
@@ -73,14 +73,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_LFJ2" type="revolute">
+  <joint name="rh_FFJ2" type="revolute">
     <origin xyz="-0.0375 0 0" rpy="0 0 0" />
-    <parent link="rh_lfproximal" />
-    <child link="rh_lfmiddle" />
+    <parent link="rh_ffproximal" />
+    <child link="rh_ffmiddle" />
     <axis xyz="0 0 -1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
-  <link name="rh_lfdistal">
+  <link name="rh_ffdistal">
     <inertial>
       <origin xyz="-0.0154535309252463 -4.50415103023932E-07 -0.00570987888422035" rpy="0 0 0" />
       <mass value="0.00529857877771826" />
@@ -102,14 +102,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_LFJ1" type="revolute">
+  <joint name="rh_FFJ1" type="revolute">
     <origin xyz="-0.0275 0 0" rpy="3.1416 0 0" />
-    <parent link="rh_lfmiddle" />
-    <child link="rh_lfdistal" />
+    <parent link="rh_ffmiddle" />
+    <child link="rh_ffdistal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
-  <link name="rh_rfproximal">
+  <link name="rh_mfproximal">
     <inertial>
       <origin xyz="-0.0195256089055077 -8.32951580972963E-10 0.00555427680913779" rpy="0 0 0" />
       <mass value="0.00677364542683526" />
@@ -131,14 +131,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_RFJ3" type="revolute">
+  <joint name="rh_MFJ3" type="revolute">
     <origin xyz="-0.027527 -0.0099 0.064462" rpy="0 1.3989 0" />
     <parent link="rh_palm" />
-    <child link="rh_rfproximal" />
+    <child link="rh_mfproximal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.261799387799" effort="100" velocity="100" />
   </joint>
-  <link name="rh_rfmiddle">
+  <link name="rh_mfmiddle">
     <inertial>
       <origin xyz="-0.0160034854677434 -9.53915548182124E-07 0.00600479707584552" rpy="0 0 0" />
       <mass value="0.00324240601749207" />
@@ -160,14 +160,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_RFJ2" type="revolute">
+  <joint name="rh_MFJ2" type="revolute">
     <origin xyz="-0.0375 0 0" rpy="0 0 0" />
-    <parent link="rh_rfproximal" />
-    <child link="rh_rfmiddle" />
-    <axis xyz="0 0 -1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <parent link="rh_mfproximal" />
+    <child link="rh_mfmiddle" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.570796326790" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
-  <link name="rh_rfdistal">
+  <link name="rh_mfdistal">
     <inertial>
       <origin xyz="-0.0154535296153524 -4.48226047489869E-07 -0.00570988343301127" rpy="0 0 0" />
       <mass value="0.00529858100427292" />
@@ -183,20 +183,20 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />0.261799" upper="1.5708"
       <geometry>
         <mesh filename="meshes/link2.3.STL" />
       </geometry>
     </collision>
   </link>
-  <joint name="rh_RFJ1" type="revolute">
+  <joint name="rh_MFJ1" type="revolute">
     <origin xyz="-0.0275 0 0" rpy="3.1416 0 0" />
-    <parent link="rh_rfmiddle" />
-    <child link="rh_rfdistal" />
+    <parent link="rh_mfmiddle" />
+    <child link="rh_mfdistal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
-  <link name="rh_mfproximal">
+  <link name="rh_rfproximal">
     <inertial>
       <origin xyz="-0.0195256023827712 3.79718420942532E-09 0.00555426727824177" rpy="0 0 0" />
       <mass value="0.00677364781232352" />
@@ -218,14 +218,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_MFJ3" type="revolute">
+  <joint name="rh_RFJ3" type="revolute">
     <origin xyz="-0.005458 -0.0099 0.067348" rpy="-3.1416 1.5681 -3.1416" />
     <parent link="rh_palm" />
-    <child link="rh_mfproximal" />
+    <child link="rh_rfproximal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.261799387799" effort="100" velocity="100" />
   </joint>
-  <link name="rh_mfmiddle">
+  <link name="rh_rfmiddle">
     <inertial>
       <origin xyz="-0.0160040263963237 -9.36770797271488E-07 0.00600470451020379" rpy="0 0 0" />
       <mass value="0.00324244064669766" />
@@ -247,14 +247,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_MFJ2" type="revolute">
+  <joint name="rh_RFJ2" type="revolute">
     <origin xyz="-0.0375 0 0" rpy="0 0 0" />
-    <parent link="rh_mfproximal" />
-    <child link="rh_mfmiddle" />
+    <parent link="rh_rfproximal" />
+    <child link="rh_rfmiddle" />
     <axis xyz="0 0 -1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
-  <link name="rh_mfdistal">
+  <link name="rh_rfdistal">
     <inertial>
       <origin xyz="-0.0154535290809652 -4.47604169872759E-07 -0.00570988466939374" rpy="0 0 0" />
       <mass value="0.0052985823368308" />
@@ -276,14 +276,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_MFJ1" type="revolute">
+  <joint name="rh_RFJ1" type="revolute">
     <origin xyz="-0.0275 0 0" rpy="3.1416 0 0" />
-    <parent link="rh_mfmiddle" />
-    <child link="rh_mfdistal" />
+    <parent link="rh_rfmiddle" />
+    <child link="rh_rfdistal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
-  <link name="rh_ffproximal">
+  <link name="rh_lfproximal">
     <inertial>
       <origin xyz="-0.0195256372959451 1.94639777455208E-08 0.00555423328271399" rpy="0 0 0" />
       <mass value="0.00677367505247576" />
@@ -305,14 +305,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_FFJ3" type="revolute">
+  <joint name="rh_LFJ3" type="revolute">
     <origin xyz="0.017201 -0.0099 0.066114" rpy="-3.1416 1.3587 -3.1416" />
     <parent link="rh_palm" />
-    <child link="rh_ffproximal" />
+    <child link="rh_lfproximal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.261799387799" effort="100" velocity="100" />
   </joint>
-  <link name="rh_ffmiddle">
+  <link name="rh_lfmiddle">
     <inertial>
       <origin xyz="-0.0160040370107232 -9.22150456999712E-07 0.00600472226208129" rpy="0 0 0" />
       <mass value="0.00324244182122049" />
@@ -334,14 +334,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_FFJ2" type="revolute">
+  <joint name="rh_LFJ2" type="revolute">
     <origin xyz="-0.0375 0 0" rpy="0 0 0" />
-    <parent link="rh_ffproximal" />
-    <child link="rh_ffmiddle" />
+    <parent link="rh_lfproximal" />
+    <child link="rh_lfmiddle" />
     <axis xyz="0 0 -1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
-  <link name="rh_ffdistal">
+  <link name="rh_lfdistal">
     <inertial>
       <origin xyz="-0.0154535286397291 -4.45417674202475E-07 -0.00570988976870921" rpy="0 0 0" />
       <mass value="0.00529857938896386" />
@@ -363,12 +363,12 @@
       </geometry>
     </collision>
   </link>
-  <joint name="rh_FFJ1" type="revolute">
+  <joint name="rh_LFJ1" type="revolute">
     <origin xyz="-0.0275 0 0" rpy="3.1416 0 0" />
-    <parent link="rh_ffmiddle" />
-    <child link="rh_ffdistal" />
+    <parent link="rh_lfmiddle" />
+    <child link="rh_lfdistal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
   <link name="rh_thbase">
     <inertial>
@@ -397,7 +397,7 @@
     <parent link="rh_palm" />
     <child link="rh_thbase" />
     <axis xyz="0 -1 0" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.221730476400" upper="0.000000000000" effort="100" velocity="100" />
   </joint>
   <link name="rh_thproximal">
     <inertial>
@@ -426,7 +426,7 @@
     <parent link="rh_thbase" />
     <child link="rh_thproximal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-0.209439510239" upper="0.209439510239" effort="100" velocity="100" />
   </joint>
   <link name="rh_thmiddle">
     <inertial>
@@ -455,7 +455,7 @@
     <parent link="rh_thproximal" />
     <child link="rh_thmiddle" />
     <axis xyz="0 0 -1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-0.698131700798" upper="0.698131700798" effort="100" velocity="100" />
   </joint>
   <link name="rh_thdistal">
     <inertial>
@@ -484,6 +484,6 @@
     <parent link="rh_thmiddle" />
     <child link="rh_thdistal" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.30899694" upper="1.30899694" effort="1" velocity="1" />
+    <limit lower="-1.570796326790" upper="0.261799387799" effort="100" velocity="100" />
   </joint>
 </robot>
