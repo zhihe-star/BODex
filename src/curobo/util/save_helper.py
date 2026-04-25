@@ -79,6 +79,7 @@ class SaveHelper:
                 "grasp_error",
                 "dist_error",
                 "pene_error",
+                "sideaware",
             ]
         if self.usd_save_key is None:
             self.usd_save_key = ["world_model", "robot_pose", "debug_info"]

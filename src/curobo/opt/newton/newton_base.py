@@ -123,6 +123,7 @@ class NewtonOptBase(Optimizer, NewtonOptConfig):
             self.debug_info['hp'] = []
             self.debug_info['debug_posi'] = []
             self.debug_info['debug_normal'] = []
+        self._dof_update_mask = None
         
         self.rollout_fn.sum_horizon = True
 
@@ -216,8 +217,10 @@ class NewtonOptBase(Optimizer, NewtonOptConfig):
     def _opt_step(self, q, grad_q):
         with profiler.record_function("newton/line_search"):
             q_n, cost_n, grad_q_n = self._approx_line_search(q, grad_q)
+        grad_q_n = self._apply_dof_update_mask(grad_q_n)
         with profiler.record_function("newton/step_direction"):
             grad_q = self._get_step_direction(cost_n, q_n, grad_q_n)
+            grad_q = self._apply_dof_update_mask(grad_q)
         if self.retain_best:
             with profiler.record_function("newton/update_best"):
                 self._update_best(q_n, grad_q_n, cost_n)
@@ -480,6 +483,7 @@ class NewtonOptBase(Optimizer, NewtonOptConfig):
             step_direction = self.scale_step_direction(step_direction)
         if self.fix_terminal_action and self.action_horizon > 1:
             step_direction[..., (self.action_horizon - 1) * self.d_action :] = 0.0
+        step_direction = self._apply_dof_update_mask(step_direction)
         if self.line_search_type == LineSearchType.GREEDY:
             best_x, best_c, best_grad = self._greedy_line_search(x, step_direction)
         elif self.line_search_type == LineSearchType.ARMIJO:
@@ -493,6 +497,30 @@ class NewtonOptBase(Optimizer, NewtonOptConfig):
         if self.fix_terminal_action and self.action_horizon > 1:
             best_grad[..., (self.action_horizon - 1) * self.d_action :] = 0.0
         return best_x, best_c, best_grad
+
+    def set_dof_update_mask(self, dof_update_mask: Optional[torch.Tensor]):
+        if dof_update_mask is None:
+            self._dof_update_mask = None
+            return
+
+        mask = self.tensor_args.to_device(dof_update_mask).view(-1)
+        if mask.shape[0] == self.d_action:
+            mask = mask.repeat(self.action_horizon)
+        elif mask.shape[0] != self.d_opt:
+            log_error(
+                f"Invalid dof_update_mask shape {mask.shape[0]}, expected {self.d_action} or {self.d_opt}."
+            )
+
+        self._dof_update_mask = mask.view(1, -1)
+
+    def _apply_dof_update_mask(self, value: torch.Tensor) -> torch.Tensor:
+        if self._dof_update_mask is None:
+            return value
+
+        mask = self._dof_update_mask
+        while mask.dim() < value.dim():
+            mask = mask.unsqueeze(1)
+        return value * mask
 
     def check_convergence(self, cost):
         above_threshold = cost > self.cost_convergence

@@ -1,0 +1,141 @@
+robot_cfg:
+  robot_color: [0.863157, 0.0865002, 0.0802199, 1.0]
+  kinematics:
+    grad_group_names:
+      - ['rh_FFJ3', 'rh_FFJ2', 'rh_FFJ1']
+      - ['rh_MFJ3', 'rh_MFJ2', 'rh_MFJ1']
+      - ['rh_RFJ3', 'rh_RFJ2', 'rh_RFJ1']
+      - ['rh_LFJ3', 'rh_LFJ2', 'rh_LFJ1']
+      - ['rh_THJ4', 'rh_THJ3', 'rh_THJ2', 'rh_THJ1']
+
+    use_root_pose: True
+    hand_pose_transfer_path: "hand_pose_transfer/hand_f.yml"
+    usd_path: ""
+    usd_robot_root: "/robot"
+    isaac_usd_path: ""
+    usd_flip_joints: {}
+    usd_flip_joint_limits: []
+
+    
+    urdf_path: "robot/hand_f/hand_f.urdf"
+    asset_root_path: "robot/hand_f"
+
+    base_link: "rh_palm"
+    ee_link: "rh_palm"
+    link_names: ["rh_thdistal", "rh_ffdistal", "rh_mfdistal", "rh_rfdistal", "rh_lfdistal"]
+    lock_joints: null
+    extra_links: null
+
+    
+    tendon_joints: []
+      # - ['rh_FFJ2', 'rh_FFJ1']
+      # - ['rh_MFJ2', 'rh_MFJ1']
+      # - ['rh_RFJ2', 'rh_RFJ1']
+      # - ['rh_LFJ2', 'rh_LFJ1']
+
+    collision_link_names:
+      - "rh_palm"
+      - "rh_ffproximal"
+      - "rh_ffmiddle"
+      - "rh_ffdistal"
+      - "rh_mfproximal"
+      - "rh_mfmiddle"
+      - "rh_mfdistal"
+      - "rh_rfproximal"
+      - "rh_rfmiddle"
+      - "rh_rfdistal"
+      - "rh_lfproximal"
+      - "rh_lfmiddle"
+      - "rh_lfdistal"
+      - "rh_thbase"
+      - "rh_thproximal"
+      - "rh_thmiddle"
+      - "rh_thdistal"
+
+    collision_spheres: "spheres/hand_f_sideaware.yml"
+    collision_sphere_buffer: 0.00
+    extra_collision_spheres: {}
+
+    self_collision_ignore:
+      rh_palm: ["rh_ffproximal", "rh_mfproximal", "rh_rfproximal", "rh_lfproximal", "rh_thbase"]
+      rh_ffproximal: ["rh_ffmiddle"]
+      rh_ffmiddle: ["rh_ffdistal"]
+      rh_ffdistal: []
+      rh_mfproximal: ["rh_mfmiddle"]
+      rh_mfmiddle: ["rh_mfdistal"]
+      rh_mfdistal: []
+      rh_rfproximal: ["rh_rfmiddle"]
+      rh_rfmiddle: ["rh_rfdistal"]
+      rh_rfdistal: []
+      rh_lfproximal: ["rh_lfmiddle"]
+      rh_lfmiddle: ["rh_lfdistal"]
+      rh_lfdistal: []
+      rh_thbase: ["rh_thproximal"]
+      rh_thproximal: ["rh_thmiddle"]
+      rh_thmiddle: ["rh_thdistal"]
+      rh_thdistal: []
+
+    self_collision_buffer:
+      
+      rh_palm: 0.0
+      rh_ffproximal: 0.0
+      rh_ffmiddle: 0.0
+      rh_ffdistal: 0.001
+      rh_mfproximal: 0.0
+      rh_mfmiddle: 0.0
+      rh_mfdistal: 0.001
+      rh_rfproximal: 0.0
+      rh_rfmiddle: 0.0
+      rh_rfdistal: 0.001
+      rh_lfproximal: 0.0
+      rh_lfmiddle: 0.0
+      rh_lfdistal: 0.001
+      rh_thbase: 0.0
+      rh_thproximal: 0.0
+      rh_thmiddle: 0.0
+      rh_thdistal: 0.001
+
+    use_global_cumul: True
+    mesh_link_names:
+      - "rh_palm"
+      - "rh_ffproximal"
+      - "rh_ffmiddle"
+      - "rh_ffdistal"
+      - "rh_mfproximal"
+      - "rh_mfmiddle"
+      - "rh_mfdistal"
+      - "rh_rfproximal"
+      - "rh_rfmiddle"
+      - "rh_rfdistal"
+      - "rh_lfproximal"
+      - "rh_lfmiddle"
+      - "rh_lfdistal"
+      - "rh_thbase"
+      - "rh_thproximal"
+      - "rh_thmiddle"
+      - "rh_thdistal"
+
+    cspace:
+      joint_names:
+        - 'rh_FFJ3'
+        - 'rh_FFJ2'
+        - 'rh_FFJ1'
+        - 'rh_MFJ3'
+        - 'rh_MFJ2'
+        - 'rh_MFJ1'
+        - 'rh_RFJ3'
+        - 'rh_RFJ2'
+        - 'rh_RFJ1'
+        - 'rh_LFJ3'
+        - 'rh_LFJ2'
+        - 'rh_LFJ1'
+        - 'rh_THJ4'
+        - 'rh_THJ3'
+        - 'rh_THJ2'
+        - 'rh_THJ1'
+
+      retract_config: [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0] # List[float]
+      null_space_weight: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      cspace_distance_weight: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      max_jerk: 500.0
+      max_acceleration: 15.0

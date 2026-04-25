@@ -3,6 +3,7 @@ import time
 from typing import Dict, List
 import datetime
 import os
+from copy import deepcopy
 
 # Third Party
 import torch
@@ -19,6 +20,17 @@ from curobo.util_file import (
     get_manip_configs_path,
     join_path,
     load_yaml,
+)
+from sideaware.presets import (
+    FINGER_ORDER,
+    build_contact_points,
+    build_finger_sets,
+    get_preset_by_name,
+)
+from sideaware.label_utils import (
+    build_joint_update_mask,
+    build_side_profile_q_ref,
+    build_sideaware_label,
 )
 
 torch.backends.cudnn.benchmark = True
@@ -98,6 +110,106 @@ def process_grasp_result(result, save_debug, save_data, save_id):
     return save_traj, debug_info
 
 
+def _normalize_finger_set(finger_set: List[str]) -> List[str]:
+    if finger_set is None:
+        return None
+    normalized = [finger.upper() for finger in finger_set]
+    invalid = [finger for finger in normalized if finger not in FINGER_ORDER]
+    if invalid:
+        raise ValueError(f"Unknown finger in --finger_set: {invalid}")
+    return normalized
+
+
+def _build_sideaware_spec(args, manip_config_data: Dict):
+    from_cli = (
+        args.sideaware_preset is not None
+        or args.finger_set is not None
+        or args.num_fingers is not None
+    )
+    from_cfg = (
+        "sideaware" in manip_config_data
+        and isinstance(manip_config_data["sideaware"], Dict)
+        and manip_config_data["sideaware"].get("enabled", False)
+    )
+    if not from_cli and not from_cfg:
+        return None
+
+    if args.sideaware_preset is not None:
+        preset = get_preset_by_name(args.sideaware_preset)
+        active_fingers = preset["active_fingers"]
+        side_per_finger = preset["side_per_finger"]
+        preset_name = preset["name"]
+    elif from_cli:
+        if args.finger_set is None:
+            n_fingers = 3 if args.num_fingers is None else args.num_fingers
+            active_fingers = build_finger_sets(n_fingers)[0]
+        else:
+            active_fingers = _normalize_finger_set(args.finger_set)
+        side_per_finger = {finger: args.side for finger in active_fingers}
+        preset_name = f"N{len(active_fingers)}_{'_'.join(active_fingers)}_{args.side}"
+    else:
+        cfg_sideaware = manip_config_data["sideaware"]
+        active_fingers = _normalize_finger_set(cfg_sideaware.get("active_fingers", []))
+        side_per_finger = {
+            finger.upper(): side for finger, side in cfg_sideaware.get("side_per_finger", {}).items()
+        }
+        if not active_fingers:
+            raise ValueError("sideaware.enabled=True but no active_fingers in config.")
+        for finger in active_fingers:
+            if finger not in side_per_finger:
+                raise ValueError(f"Missing side assignment for finger: {finger}")
+        preset_name = cfg_sideaware.get(
+            "preset_name", f"N{len(active_fingers)}_{'_'.join(active_fingers)}_custom"
+        )
+
+    contact_points_name = build_contact_points(active_fingers, side_per_finger)
+    label = build_sideaware_label(active_fingers, side_per_finger)
+    q_ref = build_side_profile_q_ref(active_fingers, side_per_finger)
+    joint_update_mask = build_joint_update_mask(active_fingers)
+
+    return {
+        "enabled": True,
+        "preset_name": preset_name,
+        "num_fingers": len(active_fingers),
+        "active_fingers": active_fingers,
+        "side_per_finger": side_per_finger,
+        "contact_points_name": contact_points_name,
+        "label": label,
+        "q_ref": q_ref,
+        "joint_update_mask": joint_update_mask,
+    }
+
+
+def apply_sideaware_overrides(manip_config_data: Dict, args):
+    sideaware_spec = _build_sideaware_spec(args, manip_config_data)
+    if sideaware_spec is None:
+        return manip_config_data, None
+
+    manip_config_data["grasp_contact_strategy"]["contact_points_name"] = sideaware_spec[
+        "contact_points_name"
+    ]
+    manip_config_data["seeder_cfg"]["q"] = sideaware_spec["q_ref"]
+    manip_config_data["mogen_init"] = sideaware_spec["q_ref"]
+    manip_config_data["sideaware"] = {
+        "enabled": True,
+        "preset_name": sideaware_spec["preset_name"],
+        "num_fingers": sideaware_spec["num_fingers"],
+        "active_fingers": sideaware_spec["active_fingers"],
+        "side_per_finger": sideaware_spec["side_per_finger"],
+        "contact_points_name": sideaware_spec["contact_points_name"],
+        "joint_update_mask": sideaware_spec["joint_update_mask"],
+        **sideaware_spec["label"],
+    }
+
+    old_exp_name = manip_config_data.get("exp_name", None)
+    if old_exp_name:
+        manip_config_data["exp_name"] = f"{old_exp_name}_{sideaware_spec['preset_name']}"
+    else:
+        manip_config_data["exp_name"] = f"sideaware_{sideaware_spec['preset_name']}"
+
+    return manip_config_data, manip_config_data["sideaware"]
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -156,6 +268,32 @@ if __name__ == "__main__":
         default=20,
         help="parallel world num.",
     )
+    parser.add_argument(
+        "--sideaware_preset",
+        type=str,
+        default=None,
+        help="Preset name from sideaware/presets.py, e.g. N3_TH_FF_MF_palmar",
+    )
+    parser.add_argument(
+        "--num_fingers",
+        type=int,
+        choices=[2, 3, 4],
+        default=None,
+        help="Used when --sideaware_preset is None and --finger_set is not provided.",
+    )
+    parser.add_argument(
+        "--side",
+        type=str,
+        choices=["palmar", "dorsal"],
+        default="palmar",
+        help="Used when --sideaware_preset is None.",
+    )
+    parser.add_argument(
+        "--finger_set",
+        nargs="+",
+        default=None,
+        help="Optional finger subset, e.g. --finger_set TH FF MF",
+    )
 
     parser.add_argument(
         "-k",
@@ -168,6 +306,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     manip_config_data = load_yaml(join_path(get_manip_configs_path(), args.manip_cfg_file))
+    manip_config_data, sideaware_meta = apply_sideaware_overrides(manip_config_data, args)
 
     world_generator = get_world_config_dataloader(manip_config_data["world"], args.parallel_world)
 
@@ -248,6 +387,10 @@ if __name__ == "__main__":
             world_info_dict["contact_force"] = result.contact_force
             world_info_dict["grasp_error"] = result.grasp_error
             world_info_dict["dist_error"] = result.dist_error
+        if sideaware_meta is not None:
+            world_info_dict["sideaware"] = [
+                deepcopy(sideaware_meta) for _ in range(len(world_info_dict["save_prefix"]))
+            ]
         log_warn(f"Sinlge Time: {time.time()-sst}")
         save_helper.save_piece(world_info_dict)
 

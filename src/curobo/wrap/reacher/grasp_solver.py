@@ -78,6 +78,7 @@ class GraspSolverConfig:
     sample_rejection_ratio: int = 50
     tensor_args: TensorDeviceType = TensorDeviceType()
     ik_solver: IKSolver = None
+    sideaware: Optional[Dict] = None
         
     @staticmethod
     @profiler.record_function("grasp_solver/load_from_robot_config")
@@ -302,6 +303,7 @@ class GraspSolverConfig:
             rollout_fn=aux_rollout,
             tensor_args=tensor_args,
             ik_solver=ik_solver,
+            sideaware=manip_config_data.get("sideaware", None),
         )
         return grasp_cfg
     
@@ -398,6 +400,51 @@ class GraspSolver(GraspSolverConfig):
         self._solve_state = None
         self._kin_list = None
         self._rollout_list = None
+        self._apply_sideaware_joint_update_mask()
+
+    def _apply_sideaware_joint_update_mask(self):
+        if not isinstance(self.sideaware, Dict):
+            return
+        if not self.sideaware.get("enabled", False):
+            return
+
+        joint_update_mask = self.sideaware.get("joint_update_mask", None)
+        if joint_update_mask is None:
+            return
+        if len(joint_update_mask) != self.dof:
+            log_warn(
+                f"Skip side-aware joint mask: size mismatch ({len(joint_update_mask)} vs dof={self.dof})."
+            )
+            return
+
+        if not all(v in [0, 1, 0.0, 1.0] for v in joint_update_mask):
+            raise ValueError(
+                f"sideaware.joint_update_mask must be binary 0/1, got: {joint_update_mask}"
+            )
+
+        active_joint_ids = [i for i, v in enumerate(joint_update_mask) if float(v) > 0.5]
+        inactive_joint_ids = [i for i, v in enumerate(joint_update_mask) if float(v) <= 0.5]
+        if len(active_joint_ids) == 0:
+            raise ValueError("sideaware.joint_update_mask disables all joints.")
+
+        mask = self.tensor_args.to_device(joint_update_mask)
+        apply_count = 0
+        for opt in self.solver.optimizers:
+            if hasattr(opt, "set_dof_update_mask"):
+                opt.set_dof_update_mask(mask)
+                apply_count += 1
+
+        joint_names = self.rollout_fn.kinematics.joint_names
+        if len(joint_names) == self.dof:
+            active_joint_names = [joint_names[i] for i in active_joint_ids]
+            masked_joint_names = [joint_names[i] for i in inactive_joint_ids]
+            log_warn(
+                f"[sideaware] joint update mask applied once: active={active_joint_names}, masked={masked_joint_names}, optimizers={apply_count}"
+            )
+        else:
+            log_warn(
+                f"[sideaware] joint update mask applied once: active_ids={active_joint_ids}, masked_ids={inactive_joint_ids}, optimizers={apply_count}"
+            )
 
     def update_goal_buffer(
         self,
