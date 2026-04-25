@@ -408,42 +408,62 @@ class GraspSolver(GraspSolverConfig):
         if not self.sideaware.get("enabled", False):
             return
 
-        joint_update_mask = self.sideaware.get("joint_update_mask", None)
-        if joint_update_mask is None:
+        raw_joint_update_mask = self.sideaware.get("joint_update_mask", None)
+        if raw_joint_update_mask is None:
             return
-        if len(joint_update_mask) != self.dof:
-            log_warn(
-                f"Skip side-aware joint mask: size mismatch ({len(joint_update_mask)} vs dof={self.dof})."
-            )
-            return
-
-        if not all(v in [0, 1, 0.0, 1.0] for v in joint_update_mask):
+        if not all(v in [0, 1, 0.0, 1.0] for v in raw_joint_update_mask):
             raise ValueError(
-                f"sideaware.joint_update_mask must be binary 0/1, got: {joint_update_mask}"
+                f"sideaware.joint_update_mask must be binary 0/1, got: {raw_joint_update_mask}"
             )
 
-        active_joint_ids = [i for i, v in enumerate(joint_update_mask) if float(v) > 0.5]
-        inactive_joint_ids = [i for i, v in enumerate(joint_update_mask) if float(v) <= 0.5]
+        dof = self.dof
+        hand_joint_names = self.rollout_fn.kinematics.joint_names
+        num_hand_joints = len(hand_joint_names)
+        base_dim = dof - num_hand_joints
+
+        if len(raw_joint_update_mask) == dof:
+            full_joint_update_mask = list(raw_joint_update_mask)
+        elif len(raw_joint_update_mask) == num_hand_joints and base_dim >= 0:
+            # Keep floating base optimizable; apply side-aware mask to hand joints only.
+            full_joint_update_mask = [1.0] * base_dim + list(raw_joint_update_mask)
+        else:
+            log_warn(
+                "[sideaware] skip joint mask due to impossible dimensions: "
+                f"mask_len={len(raw_joint_update_mask)}, dof={dof}, "
+                f"num_hand_joints={num_hand_joints}, base_dim={base_dim}"
+            )
+            return
+
+        active_joint_ids = [i for i, v in enumerate(full_joint_update_mask) if float(v) > 0.5]
+        inactive_joint_ids = [i for i, v in enumerate(full_joint_update_mask) if float(v) <= 0.5]
         if len(active_joint_ids) == 0:
             raise ValueError("sideaware.joint_update_mask disables all joints.")
 
-        mask = self.tensor_args.to_device(joint_update_mask)
+        mask = self.tensor_args.to_device(full_joint_update_mask)
         apply_count = 0
         for opt in self.solver.optimizers:
             if hasattr(opt, "set_dof_update_mask"):
                 opt.set_dof_update_mask(mask)
                 apply_count += 1
 
-        joint_names = self.rollout_fn.kinematics.joint_names
-        if len(joint_names) == self.dof:
-            active_joint_names = [joint_names[i] for i in active_joint_ids]
-            masked_joint_names = [joint_names[i] for i in inactive_joint_ids]
+        if base_dim > 0 and len(hand_joint_names) == num_hand_joints:
+            full_joint_names = [f"base_{i}" for i in range(base_dim)] + list(hand_joint_names)
+        else:
+            full_joint_names = list(hand_joint_names)
+
+        if len(full_joint_names) == dof:
+            active_joint_names = [full_joint_names[i] for i in active_joint_ids]
+            masked_joint_names = [full_joint_names[i] for i in inactive_joint_ids]
             log_warn(
-                f"[sideaware] joint update mask applied once: active={active_joint_names}, masked={masked_joint_names}, optimizers={apply_count}"
+                "[sideaware] joint update mask applied once: "
+                f"dof={dof}, num_hand_joints={num_hand_joints}, base_dim={base_dim}, "
+                f"active={active_joint_names}, masked={masked_joint_names}, optimizers={apply_count}"
             )
         else:
             log_warn(
-                f"[sideaware] joint update mask applied once: active_ids={active_joint_ids}, masked_ids={inactive_joint_ids}, optimizers={apply_count}"
+                "[sideaware] joint update mask applied once (id fallback): "
+                f"dof={dof}, num_hand_joints={num_hand_joints}, base_dim={base_dim}, "
+                f"active_ids={active_joint_ids}, masked_ids={inactive_joint_ids}, optimizers={apply_count}"
             )
 
     def update_goal_buffer(

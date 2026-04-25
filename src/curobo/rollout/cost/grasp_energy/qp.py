@@ -5,6 +5,7 @@ from typing import List
 from .base import GraspEnergyBase
 from curobo.opt.qp import init_QP_solver
 from curobo.util.tensor_util import normalize_vector
+from curobo.util.logger import log_warn
 
 
 class QPEnergy(GraspEnergyBase):
@@ -28,17 +29,48 @@ class QPEnergy(GraspEnergyBase):
         self.solve_interval = solve_interval
         self.qp_size = None
         return 
+
+    def _filter_pressure_constraints(self, num_points: int):
+        assert num_points >= 2, f"point_num must be >=2, got {num_points}"
+
+        filtered_constraints = []
+        skipped_count = 0
+        for constraint in self.pressure_constraints:
+            if not isinstance(constraint, (list, tuple)) or len(constraint) != 2:
+                skipped_count += 1
+                continue
+            point_ids, lower_bound = constraint
+            if not isinstance(point_ids, (list, tuple)):
+                skipped_count += 1
+                continue
+
+            valid_ids = [int(k) for k in point_ids if isinstance(k, (int, np.integer)) and 0 <= int(k) < num_points]
+            # keep behavior strict: if one index is invalid for this point_num, skip the whole constraint
+            if len(valid_ids) != len(point_ids) or len(valid_ids) == 0:
+                skipped_count += 1
+                continue
+
+            filtered_constraints.append((valid_ids, float(lower_bound)))
+
+        if skipped_count > 0:
+            log_warn(
+                f"[sideaware][QP] filtered pressure constraints: skipped={skipped_count}, "
+                f"kept={len(filtered_constraints)}, point_num={num_points}"
+            )
+        return filtered_constraints
     
     def _init_LCQP_u(self, batch, num_points):
+        assert num_points >= 2, f"point_num must be >=2, got {num_points}"
+        valid_pressure_constraints = self._filter_pressure_constraints(num_points)
         num_f_strength = num_points * 3
         
         # Constraints: Ax <= B
-        G_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 2) * num_points + 1 + len(self.pressure_constraints), num_f_strength + 1)))
-        h_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 2) * num_points + 1 + len(self.pressure_constraints))))
+        G_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 2) * num_points + 1 + len(valid_pressure_constraints), num_f_strength + 1)))
+        h_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 2) * num_points + 1 + len(valid_pressure_constraints))))
         
         # friction - pressure * friction_coef <= 0
         A_end = self.num_friction_approx * num_points
-        pressure_ind = range(0, num_f_strength, 3)
+        pressure_ind = list(range(0, num_f_strength, 3))
         friction1_ind = range(1, num_f_strength, 3)
         friction2_ind = range(2, num_f_strength, 3)
         select_ind = range(0, num_points)
@@ -64,25 +96,29 @@ class QPEnergy(GraspEnergyBase):
         G_matrix[:, A_end3, -1] = -1
         h_matrix[:, A_end3] = -self.k_lower
         
-        for i, constraint in enumerate(self.pressure_constraints):
-            press_lst = [pressure_ind[k] for k in constraint[0]]
+        for i, constraint in enumerate(valid_pressure_constraints):
+            press_lst = [pressure_ind[k] for k in constraint[0] if k < len(pressure_ind)]
+            if len(press_lst) == 0:
+                continue
             G_matrix[:, A_end3+1+i, press_lst] = -1
             h_matrix[:, A_end3+1+i] = - constraint[1]
         
         return G_matrix, None, h_matrix
 
     def _init_LCQP_lu(self, batch, num_points):
+        assert num_points >= 2, f"point_num must be >=2, got {num_points}"
+        valid_pressure_constraints = self._filter_pressure_constraints(num_points)
         num_f_strength = num_points * 3
 
         # Constraints: l <= Gx <= h
         # NOTE: init l is -inf, init h is 0
-        G_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 1) * num_points + 1 + len(self.pressure_constraints), num_f_strength + 1)))
-        l_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 1) * num_points + 1 + len(self.pressure_constraints))) - torch.inf)
-        h_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 1) * num_points + 1 + len(self.pressure_constraints))))
+        G_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 1) * num_points + 1 + len(valid_pressure_constraints), num_f_strength + 1)))
+        l_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 1) * num_points + 1 + len(valid_pressure_constraints))) - torch.inf)
+        h_matrix = self.tensor_args.to_device(torch.zeros((batch, (self.num_friction_approx + 1) * num_points + 1 + len(valid_pressure_constraints))))
         
         # friction - pressure * friction_coef <= 0
         A_end = self.num_friction_approx * num_points
-        pressure_ind = range(0, num_f_strength, 3)
+        pressure_ind = list(range(0, num_f_strength, 3))
         friction1_ind = range(1, num_f_strength, 3)
         friction2_ind = range(2, num_f_strength, 3)
         select_ind = range(0, num_points)
@@ -104,25 +140,29 @@ class QPEnergy(GraspEnergyBase):
         h_matrix[:, A_end2] = -self.k_lower - 0.01
         l_matrix[:, A_end2] = -self.k_lower + 0.01
         
-        for i, constraint in enumerate(self.pressure_constraints):
-            press_lst = [pressure_ind[k] for k in constraint[0]]
+        for i, constraint in enumerate(valid_pressure_constraints):
+            press_lst = [pressure_ind[k] for k in constraint[0] if k < len(pressure_ind)]
+            if len(press_lst) == 0:
+                continue
             G_matrix[:, A_end2+1+i, press_lst] = -1
             h_matrix[:, A_end2+1+i] = - constraint[1]
         
         return G_matrix, l_matrix, h_matrix
     
     def _init_LCQP_lu_soft(self, batch, num_points):
+        assert num_points >= 2, f"point_num must be >=2, got {num_points}"
+        valid_pressure_constraints = self._filter_pressure_constraints(num_points)
         num_f_strength = num_points * 4
 
         # Constraints: l <= Gx <= h.
         # NOTE: init l is -inf, init h is 0
-        G_matrix = self.tensor_args.to_device(torch.zeros((batch, (2*self.num_friction_approx + 1) * num_points + 1 + len(self.pressure_constraints), num_f_strength + 1)))
-        l_matrix = self.tensor_args.to_device(torch.zeros((batch, (2*self.num_friction_approx + 1) * num_points + 1 + len(self.pressure_constraints))) - torch.inf)
-        h_matrix = self.tensor_args.to_device(torch.zeros((batch, (2*self.num_friction_approx + 1) * num_points + 1 + len(self.pressure_constraints))))
+        G_matrix = self.tensor_args.to_device(torch.zeros((batch, (2*self.num_friction_approx + 1) * num_points + 1 + len(valid_pressure_constraints), num_f_strength + 1)))
+        l_matrix = self.tensor_args.to_device(torch.zeros((batch, (2*self.num_friction_approx + 1) * num_points + 1 + len(valid_pressure_constraints))) - torch.inf)
+        h_matrix = self.tensor_args.to_device(torch.zeros((batch, (2*self.num_friction_approx + 1) * num_points + 1 + len(valid_pressure_constraints))))
         
         # friction - pressure * friction_coef <= 0
         A_end = 2*self.num_friction_approx * num_points
-        pressure_ind = range(0, num_f_strength, 4)
+        pressure_ind = list(range(0, num_f_strength, 4))
         friction1_ind = range(1, num_f_strength, 4)
         friction2_ind = range(2, num_f_strength, 4)
         friction3_ind = range(3, num_f_strength, 4)
@@ -146,8 +186,10 @@ class QPEnergy(GraspEnergyBase):
         G_matrix[:, A_end2, -1] = -1
         h_matrix[:, A_end2] = -self.k_lower
         
-        for i, constraint in enumerate(self.pressure_constraints):
-            press_lst = [pressure_ind[k] for k in constraint[0]]
+        for i, constraint in enumerate(valid_pressure_constraints):
+            press_lst = [pressure_ind[k] for k in constraint[0] if k < len(pressure_ind)]
+            if len(press_lst) == 0:
+                continue
             G_matrix[:, A_end2+1+i, press_lst] = -1
             h_matrix[:, A_end2+1+i] = - constraint[1]
         
